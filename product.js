@@ -12,7 +12,7 @@ mongoose
     console.log(err);
   });
 
-const productScheme = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -21,7 +21,7 @@ const productScheme = new mongoose.Schema({
   price: {
     type: Number,
     required: true,
-    min: 0,
+    min: [0, "Price must be a positive integer"],
   },
   onSale: {
     type: Boolean,
@@ -38,16 +38,54 @@ const productScheme = new mongoose.Schema({
       default: 0,
     },
   },
+  size: {
+    type: String,
+    enum: ["small", "medium", "large"],
+  },
 });
 
-const Product = mongoose.model("Product", productScheme);
+// productSchema.methods.greet = function () {
+//   console.log("hello howdy ho ma JEEV");
+//   console.log(`- from ${this.name}`);
+// };
+
+productSchema.methods.toggleOnSale = function () {
+  this.onSale = !this.onSale;
+  return this.save();
+};
+
+productSchema.methods.addCategory = function (newCat) {
+  this.categories.push(newCat);
+  return this.save();
+};
+
+productSchema.statics.fireSale = function () {
+  return this.updateMany({}, { onSale: true, price: 0 });
+};
+
+const Product = mongoose.model("Product", productSchema);
+
+// const findProduct = async () => {
+//   const foundProduct = await Product.findOne({ name: "Mountain Bike" });
+//   console.log(foundProduct);
+//   await foundProduct.toggleOnSale();
+//   console.log(foundProduct);
+//   await foundProduct.addCategory("Outdoors");
+//   console.log(foundProduct);
+// };
+
+Product.fireSale().then((res) => console.log(res));
+
+// findProduct();
 
 // const bike = new Product({
-//   name: "Tire Pump",
-//   price: "19.50",
-//   categories: ["Cycling", "Safety"],
+//   name: "Cycling Jersey",
+//   price: "28.50",
+//   categories: ["Cycling"],
+//   size: "small",
 // });
-// bike.save()
+// bike
+//   .save()
 //   .then((data) => {
 //     console.log("SUCCESS!");
 //     console.log(data);
@@ -57,16 +95,16 @@ const Product = mongoose.model("Product", productScheme);
 //     console.log(err);
 //   });
 
-Product.findOneAndUpdate(
-  { name: "Tire Pump" },
-  { price: -99.99 },
-  { new: true, runValidators: true }
-)
-  .then((data) => {
-    console.log("SUCCESS!");
-    console.log(data);
-  })
-  .catch((err) => {
-    console.log("FAILURE!");
-    console.log(err);
-  });
+// Product.findOneAndUpdate(
+//   { name: "Tire Pump" },
+//   { price: -99.99 },
+//   { new: true, runValidators: true }
+// )
+//   .then((data) => {
+//     console.log("SUCCESS!");
+//     console.log(data);
+//   })
+//   .catch((err) => {
+//     console.log("FAILURE!");
+//     console.log(err);
+//   });
